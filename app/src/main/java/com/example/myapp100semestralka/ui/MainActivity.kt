@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
     private fun startTimer() {
         serviceIntent.putExtra(TimerService.TIME_EXTRA, time)
         startService(serviceIntent)
-        binding.startStopButton.text = "Stop"
+        binding.startStopButton.text = "Zastavit"
         binding.startStopButton.icon = getDrawable(R.drawable.ic_baseline_pause_24)
         timerStarted = true
     }
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     // Funkce pro zastavení časovače
     private fun stopTimer() {
         stopService(serviceIntent)
-        binding.startStopButton.text = "Start"
+        binding.startStopButton.text = "Spustit"
         binding.startStopButton.icon = getDrawable(R.drawable.ic_baseline_play_arrow_24)
         timerStarted = false
     }
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSaveDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Název časovače")
+        builder.setTitle("Jméno zaměstnance / Název projektu")
 
         // Editovatelné textové pole pro zadání názvu
         val input = EditText(this)
