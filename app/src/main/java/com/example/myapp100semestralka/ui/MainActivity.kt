@@ -6,14 +6,18 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log // Import Log class for logging
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
 import com.example.myapp100semestralka.R
+import com.example.myapp100semestralka.adapters.TimerAdapter
 import com.example.myapp100semestralka.data.database.TimerDatabase
 import com.example.myapp100semestralka.data.entities.TimerEntity
 import com.example.myapp100semestralka.databinding.ActivityMainBinding
 import com.example.myapp100semestralka.service.TimerService
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -39,11 +43,29 @@ class MainActivity : AppCompatActivity() {
         // Nastavení posluchačů událostí tlačítek
         binding.startStopButton.setOnClickListener { startStopTimer() }
         binding.resetButton.setOnClickListener { resetTimer() }
-        binding.saveButton.setOnClickListener { saveTimerToDatabase() }
+        binding.saveButton.setOnClickListener {
+            saveTimerToDatabase()
+            GlobalScope.launch {
+                delay(100) // Adjust the delay time as needed
+                loadDataFromDatabase()
+            }
+        }
+        binding.clearButton.setOnClickListener { clearDatabase()
+            GlobalScope.launch {
+                delay(100) // Adjust the delay time as needed
+                loadDataFromDatabase()
+            }
+        }
 
         // Inicializace intentu pro službu a registrace broadcast receiveru
         serviceIntent = Intent(applicationContext, TimerService::class.java)
         registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
+
+        // Inicializace RecyclerView
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+
+        loadDataFromDatabase()
+
     }
 
     // Funkce pro resetování časovače
@@ -57,8 +79,6 @@ class MainActivity : AppCompatActivity() {
     private fun startStopTimer() {
         if (timerStarted) {
             stopTimer()
-            // Uložení času do databáze po zastavení časovače
-            saveTimerToDatabase()
         } else {
             startTimer()
         }
@@ -86,8 +106,19 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "Ukládání do databáze") // Log message when saving to database
         GlobalScope.launch {
             timerDatabase.timerDao().insert(TimerEntity(timeInSeconds = time.roundToInt()))
+
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "Podařilo se uložit čas do databáze", Toast.LENGTH_SHORT).show()
+            }
         }
     }
+
+    private fun clearDatabase() {
+        GlobalScope.launch {
+            timerDatabase.clearAllTables() // Clear all tables in the database
+        }
+    }
+
 
     // BroadcastReceiver pro aktualizaci času
     private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
@@ -110,4 +141,20 @@ class MainActivity : AppCompatActivity() {
     // Funkce pro vytvoření řetězce z hodin, minut a sekund
     private fun makeTimeString(hour: Int, min: Int, sec: Int): String =
         String.format("%02d:%02d:%02d", hour, min, sec)
+
+    // Načtení dat z databáze a aktualizace RecyclerView
+    private fun loadDataFromDatabase() {
+        GlobalScope.launch {
+            val timers = timerDatabase.timerDao().getAllTimers()
+            runOnUiThread {
+                Log.d("MainActivity", "Loaded timers: $timers") // Log the loaded timers
+                val adapter = TimerAdapter(timers)
+                binding.recyclerView.adapter = adapter
+                adapter.updateData(timers)
+            }
+        }
+    }
+
+
 }
+
