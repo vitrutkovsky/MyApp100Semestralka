@@ -86,5 +86,14 @@
         android:textSize="20sp"
         android:textAlignment="center"/>
 
+    <!-- RecyclerView added below -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="10dp" />
+
+
 
 </LinearLayout>

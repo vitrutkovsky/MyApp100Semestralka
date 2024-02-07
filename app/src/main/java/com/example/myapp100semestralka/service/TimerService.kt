@@ -1,4 +1,4 @@
-package com.example.myapp100semestralka.ui
+package com.example.myapp100semestralka.service
 
 import android.app.Service
 import android.content.Intent
