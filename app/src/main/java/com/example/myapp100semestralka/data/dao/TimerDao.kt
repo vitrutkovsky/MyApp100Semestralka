@@ -10,6 +10,6 @@ interface TimerDao {
     @Insert
     suspend fun insert(timer: TimerEntity)
 
-    @Query("SELECT * FROM timer")
+    @Query("SELECT * FROM timers ORDER BY id DESC")
     suspend fun getAllTimers(): List<TimerEntity>
 }

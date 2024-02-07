@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log // Import Log class for logging
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
@@ -38,17 +40,14 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             TimerDatabase::class.java,
             "timer_database"
-        ).build()
+        ).fallbackToDestructiveMigration() //smaze DB pri migraci ale resi error
+            .build()
 
         // Nastavení posluchačů událostí tlačítek
         binding.startStopButton.setOnClickListener { startStopTimer() }
         binding.resetButton.setOnClickListener { resetTimer() }
         binding.saveButton.setOnClickListener {
-            saveTimerToDatabase()
-            GlobalScope.launch {
-                delay(100) // Adjust the delay time as needed
-                loadDataFromDatabase()
-            }
+            showSaveDialog()
         }
         binding.clearButton.setOnClickListener { clearDatabase()
             GlobalScope.launch {
@@ -101,16 +100,39 @@ class MainActivity : AppCompatActivity() {
         timerStarted = false
     }
 
-    // Funkce pro uložení času do databáze
-    private fun saveTimerToDatabase() {
-        Log.d("MainActivity", "Ukládání do databáze") // Log message when saving to database
+    private fun saveTimerToDatabase(name: String) {
+        Log.d("MainActivity", "Ukládání do databáze")
         GlobalScope.launch {
-            timerDatabase.timerDao().insert(TimerEntity(timeInSeconds = time.roundToInt()))
+            timerDatabase.timerDao().insert(TimerEntity(name = name, timeInSeconds = time.roundToInt()))
 
             runOnUiThread {
                 Toast.makeText(this@MainActivity, "Podařilo se uložit čas do databáze", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showSaveDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Název časovače")
+
+        // Editovatelné textové pole pro zadání názvu
+        val input = EditText(this)
+        builder.setView(input)
+
+        // Tlačítko pro potvrzení a uložení
+        builder.setPositiveButton("Uložit") { _, _ ->
+            val name = input.text.toString()
+            saveTimerToDatabase(name)
+            GlobalScope.launch {
+                delay(100) // Adjust the delay time as needed
+                loadDataFromDatabase()
+            }
+        }
+
+        // Tlačítko pro zrušení dialogového okna
+        builder.setNegativeButton("Zrušit") { dialog, _ -> dialog.cancel() }
+
+        builder.show()
     }
 
     private fun clearDatabase() {
@@ -147,14 +169,12 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
             val timers = timerDatabase.timerDao().getAllTimers()
             runOnUiThread {
-                Log.d("MainActivity", "Loaded timers: $timers") // Log the loaded timers
+                Log.d("MainActivity", "Loaded timers: $timers")
                 val adapter = TimerAdapter(timers)
                 binding.recyclerView.adapter = adapter
                 adapter.updateData(timers)
             }
         }
     }
-
-
 }
 

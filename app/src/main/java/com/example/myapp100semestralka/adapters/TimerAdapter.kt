@@ -12,6 +12,7 @@ class TimerAdapter(private var timers: List<TimerEntity>) : RecyclerView.Adapter
 
     inner class TimerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
+        val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
     }
 
     // Metoda pro vytvoření nového ViewHolderu
@@ -25,7 +26,9 @@ class TimerAdapter(private var timers: List<TimerEntity>) : RecyclerView.Adapter
         val timer = timers[position]
         val formattedTime = formatTime(timer.timeInSeconds)
         holder.timeTextView.text = formattedTime
+        holder.nameTextView.text = timer.name // Set the name from TimerEntity
     }
+
 
     // Metoda pro získání počtu položek v seznamu
     override fun getItemCount(): Int {
